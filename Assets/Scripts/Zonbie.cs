@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-[CreateAssetMenu(fileName = "Block", menuName = "Create Block")]
-public class Block : ScriptableObject
+[CreateAssetMenu(fileName = "Zonbie", menuName = "Create Zonbie")]
+public class Zonbie : ScriptableObject
 {
     /// <summary>
     /// 耐久値

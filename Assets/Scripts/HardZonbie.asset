@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ccd0801e3b1175a4697faa4d314d89d1, type: 3}
-  m_Name: VeryHardBlock
+  m_Name: HardZonbie
   m_EditorClassIdentifier: 
-  m_Endurance: 3
-  m_Score: 300
+  m_Endurance: 2
+  m_Score: 200
