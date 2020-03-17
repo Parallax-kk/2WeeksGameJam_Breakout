@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using AudioManager;
 
 public class BallController : MonoBehaviour
 {
@@ -33,26 +34,31 @@ public class BallController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        var vel = GetComponent<Rigidbody>().velocity;
+        if (!MainSystem.m_isGameOver)
+        {
+            var vel = GetComponent<Rigidbody>().velocity;
 
-        if (vel.z > 0)
-        {
-            vel.z = vel.z > MIN_SPEED ? vel.z : MIN_SPEED;
-        }
-        else if (vel.z < 0)
-        {
-            vel.z = vel.z < -MIN_SPEED ? vel.z : -MIN_SPEED;
-        }
+            if (vel.z > 0)
+            {
+                vel.z = vel.z > MIN_SPEED ? vel.z : MIN_SPEED;
+            }
+            else if (vel.z < 0)
+            {
+                vel.z = vel.z < -MIN_SPEED ? vel.z : -MIN_SPEED;
+            }
 
-        if (collision.gameObject.name == "LeftBar")
-        {
-            vel.x = -Mathf.Abs(vel.x) - 1.0f;
-        }
-        else if (collision.gameObject.name == "RightBar")
-        {
-            vel.x = Mathf.Abs(vel.x) + 1.0f;
-        }
+            if (collision.gameObject.name == "LeftBar")
+            {
+                vel.x = -Mathf.Abs(vel.x) - 1.0f;
+            }
+            else if (collision.gameObject.name == "RightBar")
+            {
+                vel.x = Mathf.Abs(vel.x) + 1.0f;
+            }
 
-        GetComponent<Rigidbody>().velocity = vel;
+            GetComponent<Rigidbody>().velocity = vel;
+
+            SEManager.Instance.Play(SEPath.HIT_WALL, 0.25f, 0.0f, 1.0f);
+        }
     }
 }

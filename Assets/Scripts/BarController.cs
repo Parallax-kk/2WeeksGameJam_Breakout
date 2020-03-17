@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using AudioManager;
 
 public class BarController : MonoBehaviour
 {
@@ -37,7 +36,12 @@ public class BarController : MonoBehaviour
        if (other.gameObject.tag == "Zonbie")
        {
            m_MainSystem.DecreaseStock();
-           Destroy(other.gameObject);
-       }
+            Destroy(other.gameObject);
+
+                if (!MainSystem.m_isGameOver)
+            {
+                SEManager.Instance.Play(SEPath.BITE);
+            }
+        }
     }
 }

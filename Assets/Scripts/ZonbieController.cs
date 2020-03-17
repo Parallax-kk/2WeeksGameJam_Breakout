@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using AudioManager;
 
 public class ZonbieController : MonoBehaviour
 {
@@ -74,6 +75,11 @@ public class ZonbieController : MonoBehaviour
             {
                 MainSystem.AddScore(m_Zonbie.GetScore());
                 Destroy(gameObject);
+
+                if (!MainSystem.m_isGameOver)
+                {
+                    SEManager.Instance.Play(SEPath.ATTACK);
+                }
             }
         }
     }

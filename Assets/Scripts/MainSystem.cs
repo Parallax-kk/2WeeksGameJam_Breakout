@@ -5,7 +5,8 @@ using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using TMPro;
 using DG.Tweening;
-
+using AudioManager;
+using UnityEngine.UI;
 
 public class MainSystem : MonoBehaviour
 {
@@ -31,6 +32,24 @@ public class MainSystem : MonoBehaviour
     /// </summary>
     [SerializeField]
     private bool m_finishFirstShot = false;
+
+    /// <summary>
+    /// 設定パネル
+    /// </summary>
+    [SerializeField]
+    private GameObject m_SettingPnale = null;
+
+    /// <summary>
+    /// BGMスライダー
+    /// </summary>
+    [SerializeField]
+    private Slider m_BGMSlider = null;
+
+    /// <summary>
+    /// SEスライダー
+    /// </summary>
+    [SerializeField]
+    private Slider m_SESlider = null;
 
     /// <summary>
     /// スコアのテキスト
@@ -93,16 +112,30 @@ public class MainSystem : MonoBehaviour
     private Transform m_ZonbieRoot = null;
 
     /// <summary>
+    /// ゾンビスポーンSE
+    /// </summary>
+    private List<string> m_listZonbieSpownSE = new List<string>();
+
+    /// <summary>
     /// ゲームオーバーか否かのフラグ
     /// </summary>
-    private bool m_isGameOver = false;
+    public static bool m_isGameOver = false;
 
     private void Awake()
     {
+        m_isGameOver = false;
+
         m_ScoreText = GameObject.Find("Canvas/Panel/ScoreText").GetComponent<TextMeshProUGUI>();
         m_ResultScoreText = GameObject.Find("Canvas/ResultPanel/ResultScoreText").GetComponent<TextMeshProUGUI>();
-        StartCoroutine("ZonbieSpown");
+        m_listZonbieSpownSE = new List<string>() { SEPath.GROWL01, SEPath.GROWL02, SEPath.GROWL03,
+                                                   SEPath.GROWL04, SEPath.GROWL05, SEPath.GROWL06};
         Time.timeScale = 1.0f;
+        m_Score = 0;
+        m_ScoreText.text = "Score:0";
+        m_ResultScoreText.text = "Score:0";
+        StartCoroutine("ZonbieSpown");
+        m_BGMSlider.value = BGMManager.Instance.GetBaseVolume();
+        m_SESlider.value = SEManager.Instance.GetBaseVolume();
     }
 
     private IEnumerator ZonbieSpown()
@@ -113,6 +146,12 @@ public class MainSystem : MonoBehaviour
                         m_SpownPoint.GetChild(Random.Range(0, m_SpownPoint.childCount)).position,
                         Quaternion.identity,
                         m_ZonbieRoot);
+
+            if (Random.Range(0, 5) == 0)
+            {
+                int index = Random.Range(0, m_listZonbieSpownSE.Count);
+                SEManager.Instance.Play(m_listZonbieSpownSE[index]);
+            }
 
             if (m_isGameOver)
             {
@@ -125,43 +164,45 @@ public class MainSystem : MonoBehaviour
 
     private void Update()
     {
-        if (!m_finishFirstShot && Input.GetMouseButtonDown(0) && !m_PausePanel.activeSelf)
+        if (!m_isGameOver)
         {
-            m_finishFirstShot = true;
-            m_Ball.GetComponent<Rigidbody>().velocity = new Vector3(Random.Range(-m_FirstShotPower, m_FirstShotPower), 0.0f, m_FirstShotPower);
-            m_Ball.GetComponent<Rigidbody>().angularVelocity = new Vector3(0.0f, 10.0f, 0.0f);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if(m_PausePanel.activeSelf)
+            if (!m_finishFirstShot && Input.GetMouseButtonDown(0) && !m_PausePanel.activeSelf && m_Ball.GetComponent<Rigidbody>().velocity.magnitude == 0.0f)
             {
-                Time.timeScale = 1.0f;
-                m_PausePanel.SetActive(false);
+                m_finishFirstShot = true;
+                m_Ball.GetComponent<Rigidbody>().velocity = new Vector3(Random.Range(-m_FirstShotPower, m_FirstShotPower), 0.0f, m_FirstShotPower);
+                m_Ball.GetComponent<Rigidbody>().angularVelocity = new Vector3(0.0f, 10.0f, 0.0f);
             }
-            else
+
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Time.timeScale = 0.0f;
-                m_PausePanel.SetActive(true);
+                if (m_PausePanel.activeSelf)
+                {
+                    Time.timeScale = 1.0f;
+                    m_PausePanel.SetActive(false);
+                }
+                else
+                {
+                    Time.timeScale = 0.0f;
+                    m_PausePanel.SetActive(true);
+                }
             }
         }
-
-        if(m_Ball.position.z < -4.0f)
+        if (m_Ball.position.z < -4.0f)
         {
             // 残機があればボール位置リセット
-            if(m_StockPanel.transform.childCount > 0)
+            if (m_StockPanel.transform.childCount > 0)
             {
                 m_Ball.GetComponent<BallController>().Reset();
                 DecreaseStock();
                 m_finishFirstShot = false;
             }
-            else if(!m_isGameOver)
+            else if (!m_isGameOver)
             {
                 DisplayResult();
             }
         }
 
-        if (m_StockPanel.transform.childCount == 0)
+        if (m_StockPanel.transform.childCount == 0 && !m_isGameOver)
         {
             DisplayResult();
         }
@@ -204,9 +245,12 @@ public class MainSystem : MonoBehaviour
     /// <param name="score"></param>
     public static void AddScore(int score)
     {
-        m_Score += score;
-        m_ScoreText.text = "Score:" + m_Score.ToString();
-        m_ResultScoreText.text = "Score:" + m_Score.ToString();
+        if (!m_isGameOver)
+        {
+            m_Score += score;
+            m_ScoreText.text = "Score:" + m_Score.ToString();
+            m_ResultScoreText.text = "Score:" + m_Score.ToString();
+        }
     }
 
     /// <summary>
@@ -216,6 +260,14 @@ public class MainSystem : MonoBehaviour
     {
         Time.timeScale = 1.0f;
         m_PausePanel.SetActive(false);
+    }
+
+    /// <summary>
+    /// 設定パネル表示/非表示ボタン
+    /// </summary>
+    public void DisplaySettingButton()
+    {
+        m_SettingPnale.SetActive(!m_SettingPnale.activeSelf);
     }
 
     /// <summary>
@@ -249,5 +301,17 @@ public class MainSystem : MonoBehaviour
 
         //Twitter投稿画面の起動
         Application.OpenURL(url);
+    }
+
+    /// <summary>
+    /// スライダーの値変更
+    /// </summary>
+    public void UpdateSlider()
+    {
+        //BGM全体のボリュームを変更
+        BGMManager.Instance.ChangeBaseVolume(m_BGMSlider.value);
+
+        //SE全体のボリュームを変更
+        SEManager.Instance.ChangeBaseVolume(m_SESlider.value);
     }
 }
