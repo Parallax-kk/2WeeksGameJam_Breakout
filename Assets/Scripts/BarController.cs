@@ -14,7 +14,7 @@ public class BarController : MonoBehaviour
 
     private void Update()
     {
-        if (Time.timeScale == 1.0f)
+        if (Time.timeScale == 1.0f && !MainSystem.m_isGameOver)
         {
             // マウス位置をスクリーン座標からワールド座標に変換する
             var mausePosition = Input.mousePosition;
@@ -33,12 +33,12 @@ public class BarController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-       if (other.gameObject.tag == "Zonbie")
-       {
-           m_MainSystem.DecreaseStock();
+        if (other.gameObject.tag == "Zonbie")
+        {
+            m_MainSystem.DecreaseStock();
             Destroy(other.gameObject);
 
-                if (!MainSystem.m_isGameOver)
+            if (!MainSystem.m_isGameOver)
             {
                 SEManager.Instance.Play(SEPath.BITE);
             }

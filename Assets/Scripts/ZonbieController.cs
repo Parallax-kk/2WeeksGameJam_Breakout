@@ -37,26 +37,51 @@ public class ZonbieController : MonoBehaviour
     /// ゾンビのプレハブ
     /// </summary>
     [SerializeField]
-    private List<GameObject> m_ZombiePrefabs = new List<GameObject>();
+    private List<GameObject> m_listZombiePrefabs = new List<GameObject>();
+
+    /// <summary>
+    /// 血痕のプレハブ
+    /// </summary>
+    [SerializeField]
+    private List<GameObject> m_listBloodPrefabs = new List<GameObject>();
+
+    /// <summary>
+    /// 血痕ルートオブジェクト
+    /// </summary>
+    private Transform m_Bloods = null;
+
+    /// <summary>
+    /// 血痕Y位置
+    /// </summary>
+    private static readonly float BLOOD_POSITION_Y = -0.1948f;
+
+    /// <summary>
+    /// 死んだかどうかのフラグ
+    /// </summary>
+    private bool m_isDead = false;
 
     private void Awake()
     {
         m_MainSystem = GameObject.Find("MainSystem").GetComponent<MainSystem>();
+        m_Bloods = GameObject.Find("Bloods").transform;
         m_CurrentEndurance = m_Zonbie.GetEndurance();
         m_NavAgent = GetComponent<NavMeshAgent>();
         m_Bar = GameObject.Find("Bar").transform;
         m_NavAgent.destination = m_Bar.position;
-        Instantiate(m_ZombiePrefabs[Random.Range(0,m_ZombiePrefabs.Count)],transform);
+        Instantiate(m_listZombiePrefabs[Random.Range(0, m_listZombiePrefabs.Count)],transform);
     }
 
     private void Update()
     {
-        m_NavAgent.destination = m_Bar.position;
-
-        if (transform.position.z <= -1.5f)
+        if (!m_isDead)
         {
-            m_MainSystem.DecreaseStock();
-            Destroy(gameObject);
+            m_NavAgent.destination = m_Bar.position;
+
+            if (transform.position.z <= -1.5f)
+            {
+                m_MainSystem.DecreaseStock();
+                Destroy(gameObject);
+            }
         }
     }
 
@@ -73,8 +98,26 @@ public class ZonbieController : MonoBehaviour
             //　耐久値が0以下なら破壊
             if (m_CurrentEndurance <= 0)
             {
+                m_isDead = true;
                 MainSystem.AddScore(m_Zonbie.GetScore());
-                Destroy(gameObject);
+
+                GetComponent<BoxCollider>().enabled  = false;
+                GetComponent<NavMeshAgent>().enabled = false;
+
+                // 血痕生成
+                var pos = transform.position;
+                pos.y = BLOOD_POSITION_Y;
+                Instantiate(m_listBloodPrefabs[Random.Range(0, m_listBloodPrefabs.Count)], pos, Quaternion.identity, m_Bloods);
+                if(m_Bloods.childCount > 100)
+                {
+                    Destroy(m_Bloods.GetChild(0).gameObject);
+                }
+
+                // パーティクル動作
+                transform.GetChild(0).GetComponent<ParticleSystem>().Play();
+
+                Destroy(transform.GetChild(1).gameObject);
+                Destroy(gameObject,1.0f);
 
                 if (!MainSystem.m_isGameOver)
                 {

@@ -64,10 +64,10 @@ public class MainSystem : MonoBehaviour
     private static TextMeshProUGUI m_ResultScoreText = null;
 
     /// <summary>
-    /// ストック表示パネル
+    /// ストック
     /// </summary>
     [SerializeField]
-    private GameObject m_StockPanel = null;
+    private Transform m_Life = null;
 
     /// <summary>
     /// リザルト画面
@@ -86,6 +86,12 @@ public class MainSystem : MonoBehaviour
     /// </summary>
     [SerializeField]
     private GameObject m_PausePanel = null;
+
+    /// <summary>
+    /// ロード中のパネル
+    /// </summary>
+    [SerializeField]
+    private RectTransform m_LoadingPanel = null;
 
     /// <summary>
     /// 初射出時に与える力
@@ -125,17 +131,23 @@ public class MainSystem : MonoBehaviour
     {
         m_isGameOver = false;
 
-        m_ScoreText = GameObject.Find("Canvas/Panel/ScoreText").GetComponent<TextMeshProUGUI>();
+        m_ScoreText = GameObject.Find("Canvas/HeaderPanel/ScoreText").GetComponent<TextMeshProUGUI>();
         m_ResultScoreText = GameObject.Find("Canvas/ResultPanel/ResultScoreText").GetComponent<TextMeshProUGUI>();
         m_listZonbieSpownSE = new List<string>() { SEPath.GROWL01, SEPath.GROWL02, SEPath.GROWL03,
                                                    SEPath.GROWL04, SEPath.GROWL05, SEPath.GROWL06};
         Time.timeScale = 1.0f;
         m_Score = 0;
-        m_ScoreText.text = "Score:0";
-        m_ResultScoreText.text = "Score:0";
+        m_ScoreText.text = "SCORE 0";
+        m_ResultScoreText.text = "SCORE 0";
         StartCoroutine("ZonbieSpown");
         m_BGMSlider.value = BGMManager.Instance.GetBaseVolume();
         m_SESlider.value = SEManager.Instance.GetBaseVolume();
+    }
+
+    private void Start()
+    {
+        SEManager.Instance.Play(SEPath.SHUTTER, 1.0f, 0.0f, 1.0f);
+        m_LoadingPanel.DOLocalMoveY(900.0f, 4.0f).SetEase(Ease.OutBack);
     }
 
     private IEnumerator ZonbieSpown()
@@ -187,10 +199,10 @@ public class MainSystem : MonoBehaviour
                 }
             }
         }
-        if (m_Ball.position.z < -4.0f)
+        if (m_Ball.position.z < -5.0f)
         {
             // 残機があればボール位置リセット
-            if (m_StockPanel.transform.childCount > 0)
+            if (m_Life.childCount > 0)
             {
                 m_Ball.GetComponent<BallController>().Reset();
                 DecreaseStock();
@@ -202,7 +214,7 @@ public class MainSystem : MonoBehaviour
             }
         }
 
-        if (m_StockPanel.transform.childCount == 0 && !m_isGameOver)
+        if (m_Life.childCount == 0 && !m_isGameOver)
         {
             DisplayResult();
         }
@@ -213,9 +225,9 @@ public class MainSystem : MonoBehaviour
     /// </summary>
     public void DecreaseStock()
     {
-        if (m_StockPanel.transform.childCount > 0)
+        if (m_Life.childCount > 0)
         {
-            Destroy(m_StockPanel.transform.GetChild(0).gameObject);
+            Destroy(m_Life.GetChild(0).gameObject);
         }
     }
 
@@ -225,18 +237,18 @@ public class MainSystem : MonoBehaviour
     private void DisplayResult()
     {
         m_isGameOver = true;
-
+        SEManager.Instance.Play(SEPath.SHUTTER, 1.0f, 0.0f, 1.0f);
         if (m_Zonbies.childCount > 0)
         {
-            m_ResultText.text = "Game Over";
+            m_ResultText.text = "GAME OVER";
         }
         else
         {
-            m_ResultText.text = "Congratulations!";
+            m_ResultText.text = "CONGRATULATIONS";
         }
 
         m_Ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
-        m_ResultPanel.DOLocalMoveY(0.0f, 1.0f);
+        m_ResultPanel.DOLocalMoveY(0.0f, 4.0f);
     }
 
     /// <summary>
@@ -248,8 +260,8 @@ public class MainSystem : MonoBehaviour
         if (!m_isGameOver)
         {
             m_Score += score;
-            m_ScoreText.text = "Score:" + m_Score.ToString();
-            m_ResultScoreText.text = "Score:" + m_Score.ToString();
+            m_ScoreText.text = "SCORE " + m_Score.ToString();
+            m_ResultScoreText.text = "SCORE " + m_Score.ToString();
         }
     }
 

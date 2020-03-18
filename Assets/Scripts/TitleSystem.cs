@@ -2,6 +2,7 @@
 using UnityEngine.SceneManagement;
 using AudioManager;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class TitleSystem : MonoBehaviour
 {
@@ -23,6 +24,12 @@ public class TitleSystem : MonoBehaviour
     [SerializeField]
     private Slider m_SESlider = null;
 
+    /// <summary>
+    /// ロード中のパネル
+    /// </summary>
+    [SerializeField]
+    private RectTransform m_LoadingPanel = null;
+
     private void Awake()
     {
         BGMManager.Instance.Play(BGMPath.CYBER_PHYSICAL, 0.5f, 0, 1, true);
@@ -33,7 +40,14 @@ public class TitleSystem : MonoBehaviour
     /// </summary>
     public void StartButton()
     {
-        SceneManager.LoadScene("Main");
+        Sequence seq = DOTween.Sequence();
+        SEManager.Instance.Play(SEPath.SHUTTER,1.0f,0.0f,1.0f);
+        seq.Append(m_LoadingPanel.DOLocalMoveY(0.0f, 4.0f).SetEase(Ease.OutBack));
+        seq.AppendInterval(0.5f);
+        seq.AppendCallback(() =>
+        {
+            SceneManager.LoadScene("Main");
+        });
     }
 
     /// <summary>
