@@ -1,8 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.SceneManagement;
-using AudioManager;
-using UnityEngine.UI;
+﻿using AudioManager;
 using DG.Tweening;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class TitleSystem : MonoBehaviour
 {
@@ -30,9 +30,11 @@ public class TitleSystem : MonoBehaviour
     [SerializeField]
     private RectTransform m_LoadingPanel = null;
 
-    private void Awake()
+    private void Start()
     {
-        BGMManager.Instance.Play(BGMPath.CYBER_PHYSICAL, 0.5f, 0, 1, true);
+        BGMManager.Instance.ChangeBaseVolume(m_BGMSlider.value);
+        SEManager.Instance.ChangeBaseVolume(m_SESlider.value);
+        BGMManager.Instance.Play(BGMPath.CYBER_PHYSICAL, 1, 0, 1, true);
     }
 
     /// <summary>
@@ -41,8 +43,8 @@ public class TitleSystem : MonoBehaviour
     public void StartButton()
     {
         Sequence seq = DOTween.Sequence();
-        SEManager.Instance.Play(SEPath.SHUTTER,1.0f,0.0f,1.0f);
-        seq.Append(m_LoadingPanel.DOLocalMoveY(0.0f, 4.0f).SetEase(Ease.OutBack));
+        SEManager.Instance.Play(SEPath.SHUTTER,0.7f,0.0f,1.0f);
+        seq.Append(m_LoadingPanel.DOLocalMoveY(0.0f, 4.0f));
         seq.AppendInterval(0.5f);
         seq.AppendCallback(() =>
         {
@@ -59,26 +61,16 @@ public class TitleSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 終了ボタン
-    /// </summary>
-    public void ExitButton()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#elif UNITY_STANDALONE
-      UnityEngine.Application.Quit();
-#endif
-    }
-
-    /// <summary>
     /// スライダーの値変更
     /// </summary>
     public void UpdateSlider()
     {
         //BGM全体のボリュームを変更
         BGMManager.Instance.ChangeBaseVolume(m_BGMSlider.value);
+        MainSystem.m_BGMRate = m_BGMSlider.value;
 
         //SE全体のボリュームを変更
         SEManager.Instance.ChangeBaseVolume(m_SESlider.value);
+        MainSystem.m_SERate = m_SESlider.value;
     }
 }

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -2606852783148449902}
   - component: {fileID: -2545709941753948667}
   m_Layer: 0
-  m_Name: HardZonbie
+  m_Name: HardZombie
   m_TagString: Zonbie
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

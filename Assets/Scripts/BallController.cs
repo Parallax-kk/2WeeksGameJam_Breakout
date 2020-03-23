@@ -49,16 +49,19 @@ public class BallController : MonoBehaviour
 
             if (collision.gameObject.name == "LeftBar")
             {
-                vel.x = -Mathf.Abs(vel.x) - 1.0f;
+                vel.x = -Mathf.Abs(vel.x) - 2.0f;
             }
             else if (collision.gameObject.name == "RightBar")
             {
-                vel.x = Mathf.Abs(vel.x) + 1.0f;
+                vel.x = Mathf.Abs(vel.x) + 2.0f;
             }
+
+            vel.x = Mathf.Clamp(vel.x, -30.0f, 30.0f);
+            vel.z = Mathf.Clamp(vel.z, -30.0f, 30.0f);
 
             GetComponent<Rigidbody>().velocity = vel;
 
-            SEManager.Instance.Play(SEPath.HIT_WALL, 0.25f, 0.0f, 1.0f);
+            SEManager.Instance.Play(SEPath.HIT_WALL);
         }
     }
 }

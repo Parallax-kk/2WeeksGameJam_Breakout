@@ -22,7 +22,7 @@ public class BarController : MonoBehaviour
             var targetPos = Camera.main.ScreenToWorldPoint(mausePosition);
             
             // X, Y座標の範囲を制限する
-            targetPos.x = Mathf.Clamp(targetPos.x, -5.0f, 5.0f);
+            targetPos.x = Mathf.Clamp(targetPos.x, -4.0f, 4.0f);
             targetPos.y = 0.8f;
             targetPos.z = 0.0f;
 

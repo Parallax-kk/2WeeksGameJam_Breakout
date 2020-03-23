@@ -118,6 +118,12 @@ public class MainSystem : MonoBehaviour
     private Transform m_ZonbieRoot = null;
 
     /// <summary>
+    /// キャラクタープレハブ
+    /// </summary>
+    [SerializeField]
+    private List<GameObject> m_listCharactorPrefab = new List<GameObject>();
+
+    /// <summary>
     /// ゾンビスポーンSE
     /// </summary>
     private List<string> m_listZonbieSpownSE = new List<string>();
@@ -127,12 +133,39 @@ public class MainSystem : MonoBehaviour
     /// </summary>
     public static bool m_isGameOver = false;
 
+    /// <summary>
+    /// BGMの音量
+    /// </summary>
+    public static float m_BGMRate = 0.5f;
+
+    /// <summary>
+    /// SEの音量
+    /// </summary>
+    public static float m_SERate = 0.5f;
+
     private void Awake()
     {
         m_isGameOver = false;
 
         m_ScoreText = GameObject.Find("Canvas/HeaderPanel/ScoreText").GetComponent<TextMeshProUGUI>();
         m_ResultScoreText = GameObject.Find("Canvas/ResultPanel/ResultScoreText").GetComponent<TextMeshProUGUI>();
+
+        List<int> numbers = new List<int>();
+        for (int count = 0; count < m_listCharactorPrefab.Count; count++)
+        {
+            numbers.Add(count);
+        }
+
+        foreach (Transform child in m_Life)
+        {
+            int index = Random.Range(0, numbers.Count);
+            int randomValue = numbers[index];
+
+            Instantiate(m_listCharactorPrefab[randomValue], child);
+
+            numbers.RemoveAt(index);
+        }
+
         m_listZonbieSpownSE = new List<string>() { SEPath.GROWL01, SEPath.GROWL02, SEPath.GROWL03,
                                                    SEPath.GROWL04, SEPath.GROWL05, SEPath.GROWL06};
         Time.timeScale = 1.0f;
@@ -140,14 +173,23 @@ public class MainSystem : MonoBehaviour
         m_ScoreText.text = "SCORE 0";
         m_ResultScoreText.text = "SCORE 0";
         StartCoroutine("ZonbieSpown");
-        m_BGMSlider.value = BGMManager.Instance.GetBaseVolume();
-        m_SESlider.value = SEManager.Instance.GetBaseVolume();
+
+        m_BGMSlider.value = m_BGMRate;
+        m_SESlider.value  = m_SERate;
+
+        m_LoadingPanel.transform.localPosition = Vector3.zero;
     }
 
     private void Start()
     {
-        SEManager.Instance.Play(SEPath.SHUTTER, 1.0f, 0.0f, 1.0f);
-        m_LoadingPanel.DOLocalMoveY(900.0f, 4.0f).SetEase(Ease.OutBack);
+        Sequence seq = DOTween.Sequence();
+        seq.AppendInterval(0.5f);
+
+        seq.AppendCallback(() =>
+        {
+            SEManager.Instance.Play(SEPath.SHUTTER);
+            m_LoadingPanel.DOLocalMoveY(900.0f, 4.0f).SetEase(Ease.OutBack);
+        });
     }
 
     private IEnumerator ZonbieSpown()
@@ -237,7 +279,7 @@ public class MainSystem : MonoBehaviour
     private void DisplayResult()
     {
         m_isGameOver = true;
-        SEManager.Instance.Play(SEPath.SHUTTER, 1.0f, 0.0f, 1.0f);
+        SEManager.Instance.Play(SEPath.SHUTTER, m_SESlider.value, 0.0f, 1.0f);
         if (m_Zonbies.childCount > 0)
         {
             m_ResultText.text = "GAME OVER";
@@ -291,28 +333,11 @@ public class MainSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 終了ボタン
-    /// </summary>
-    public void ExitButton()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#elif UNITY_STANDALONE
-      UnityEngine.Application.Quit();
-#endif
-    }
-
-    /// <summary>
     /// ツイートボタン
     /// </summary>
     public void TweetButton()
     {
-        string esctext = UnityWebRequest.EscapeURL("2 Weeks Game Jam No.1「Break Out」\n Score:" + m_Score.ToString() + "\n https://parallax-kk.github.io/2WeeksGameJam_Breakout_Web/");
-        string esctag = UnityWebRequest.EscapeURL("2WeeksGameJam");
-        string url = "https://twitter.com/intent/tweet?text=" + esctext + "&hashtags=" + esctag;
-
-        //Twitter投稿画面の起動
-        Application.OpenURL(url);
+        naichilab.UnityRoomTweet.Tweet("break_out_of_the_dead", "2 Weeks Game Jam No.1「BREAK OUT OF THE DEAD」\n Score:" + m_Score.ToString() + "\n", "unityroom");
     }
 
     /// <summary>
@@ -322,8 +347,10 @@ public class MainSystem : MonoBehaviour
     {
         //BGM全体のボリュームを変更
         BGMManager.Instance.ChangeBaseVolume(m_BGMSlider.value);
+        m_BGMRate = m_BGMSlider.value;
 
         //SE全体のボリュームを変更
         SEManager.Instance.ChangeBaseVolume(m_SESlider.value);
+        m_SERate = m_SESlider.value;
     }
 }
